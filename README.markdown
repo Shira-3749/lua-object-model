@@ -1,7 +1,7 @@
 Lua object model
 ================
 
-Simple object model implementation in Lua (~100 lines of code, including comments).
+Simple object model implementation in Lua.
 
 Inspired by [http://lua-users.org/wiki/SimpleLuaClasses](http://lua-users.org/wiki/SimpleLuaClasses)
 
@@ -18,7 +18,7 @@ Inspired by [http://lua-users.org/wiki/SimpleLuaClasses](http://lua-users.org/wi
 
 ## Requirements
 
-- Lua 5.2 or newer
+- Lua 5.1 or newer
 
 
 ## Installation
@@ -138,8 +138,6 @@ by Lua.
         -- self points to the instance
         -- no arguments are passed
 	end
-
-Destructors are implemented using the `__gc` metamethod.
 
 
 ### Instantiating a class

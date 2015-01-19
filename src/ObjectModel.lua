@@ -2,6 +2,8 @@
 -- Lua object model implementation
 --
 
+local isLua51 = 'Lua 5.1' == _VERSION
+
 --- Create an instance of the given class
 --
 -- @param class the class being constructed
@@ -11,6 +13,21 @@ local function new(class, ...)
     local object = {}
 
     setmetatable(object, class)
+
+    -- in Lua 5.1, destructors must be implemented using newproxy()
+    if isLua51 then
+        local proxy = newproxy(true)
+        local proxyMeta = getmetatable(proxy)
+
+        proxyMeta.__gc = function ()
+            object:destructor()
+        end
+
+        -- keep the userdata from newproxy reachable until the object
+        -- table is about to be garbage-collected - then the __gc hook
+        -- will be invoked and the destructor called
+        rawset(object, '__proxy', proxy)
+    end
 
     -- invoke constructor of the class
     if class.constructor then
@@ -83,7 +100,7 @@ local function class(parent)
     -- and they will look up their methods in it
     class.__index = class
 
-    if not parent then
+    if not parent and not isLua51 then
         class.__gc = objectGarbageCollect
     end
 
