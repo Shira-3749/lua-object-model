@@ -20,7 +20,9 @@ local function new(class, ...)
         local proxyMeta = getmetatable(proxy)
 
         proxyMeta.__gc = function ()
-            object:destructor()
+            if object.destructor then
+                object:destructor()
+            end
         end
 
         -- keep the userdata from newproxy reachable until the object
