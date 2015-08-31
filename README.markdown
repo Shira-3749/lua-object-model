@@ -53,7 +53,7 @@ Let's assume you have imported the `ObjectModel` module like this:
 
 ### Creating a new class
 
-The class function returns a new table that you can populate with your methods
+The `class` function returns a new table that you can populate with your methods
 and properties.
 
     MyClass = o.class()
@@ -67,65 +67,42 @@ and properties are inherited.
     MyClass = o.class(OtherClass)
 
 Internally, a shallow copy of the parent class is created for performance reasons.
-Therefore modifications of the parent class at a later point will NOT be propagated
-to the child classes.
+Modifications of the parent class at a later point will NOT be propagated to the child
+classes.
 
 
 ### Prototype properties
 
-Prototype properties are available in all instances of the class.
+Prototype properties can be defined in the class table. They are available in all
+instances of the class and can be accessed statically. Instance properties will shadow
+prototype properties with the same name.
 
     MyClass.foo = 'bar'
 
-**Warning!** Do not put tables into prototype properties, unless you want the table
-to be shared across all the instances. If you need to initialize a table property
-per-instance, do so in the constructor.
-
-
-### Static properties
-
-There is no separate namespace for static properties. All prototype properties are
-defined in the class table, therefore can be accessed without instantiating the class.
-
-    MyClass.staticFoo = 'bar'
-
-    print(MyClass.staticFoo) -- prints: bar
+**Warning!** Do not put tables into prototype properties unless you want the table
+to be shared across all the instances (see instance properties).
 
 
 ### Methods
 
-Methods are defined the same way as prototype properties.
-
-    MyClass.doSomething = function(self)
-        -- do something, self points to the instance
-    end
-
-However, one can take advantage of Lua's syntactic sugar to make method definitions prettier:
+Lua provides syntactic sugar for this purpose.
 
     function MyClass:doSomething()
         -- do something, self points to the instance
+		print(self.someProperty) -- getting properties
+		print(self:someMethod()) -- calling other methods
 	end
 
-
-### Static methods
-
-All methods are defined in the class table (same as prototype properties), therefore can be
-accessed and called without instantiating the class.
-
-    function MyClass:doSomethingStatic()
-        -- self points to MyClass
-    end
-
-    MyClass:doSomethingStatic() -- calling a static method
+Same as prototype properties, methods defined this way are available in all instances
+of the class and can be called statically.
 
 
 ### Constructors
 
 Constructor is a special method that is invoked when a class is being instantiated.
 
-    function MyClass:constructor(arg)
+    function MyClass:constructor(lorem, ipsum)
         -- self points to the instance
-        -- arg is the first argument passed to the constructor, and so on
     end
 
 
@@ -149,9 +126,26 @@ To create an instance of a class, simply call the class table as a function.
 All arguments passed to this function are forwarded to the constructor.
 
 
+### Instance properties
+
+Properties defined on an object are privately owned by that object. They will shadow prototype
+properties with the same name.
+
+    MyClass.test = 'hello from prototype'
+
+    local obj = MyClass()
+
+	print(obj.test) -- prints: hello from prototype
+	obj.test = 'hello from instance'
+	print(obj.test) -- prints: hello from instance
+	obj.test = nil
+	print(obj.test) -- prints: hello from prototype
+
+
 ### Instanceof
 
-To check whether an object is instance of a specific class or has that class as one of its parents, use the `instanceof()` function.
+To check whether an object is instance of a specific class or has that class as one of its parents,
+use the `instanceof()` function.
 
     local obj = MyClass()
 
@@ -185,8 +179,7 @@ invoked using the `:super(methodName, ...)` method.
 
 ### Metamethods
 
-A class is actually a metatable of its instances. This allows metamethods to be defined the same
-way as any other methods.
+Metamethods can be defined the same way as any other methods and will work as expected.
 
     function MyClass:__tostring()
         return 'stringified!'

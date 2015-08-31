@@ -3,6 +3,7 @@
 --
 
 local isLua51 = 'Lua 5.1' == _VERSION
+local unpack = unpack or table.unpack
 
 --- Create an instance of the given class
 --
@@ -34,8 +35,6 @@ local function new(class, ...)
     -- invoke constructor of the class
     if class.constructor then
         class.constructor(object, ...)
-    elseif class._parent and class._parent.constructor then
-        class._parent.constructor(object, ...)
     end
 
     return object
@@ -48,7 +47,36 @@ end
 -- @param ...        arguments for the parent method
 -- @return the return value(s) of the parent method
 local function super(object, methodName, ...)
-    return object._parent[methodName](object, ...)
+    -- init super call scope table on first use
+    if nil == object.___superScope then
+        object.___superScope = {}
+    end
+
+    -- switch to the next parent class
+    local currentParent = object.___superScope[methodName]
+    local nextParent
+
+    if nil ~= currentParent then
+        nextParent = currentParent.__parent;
+    else
+        nextParent = object.__parent;
+    end
+
+    object.___superScope[methodName] = nextParent
+
+    -- call the parent method
+    local results = {pcall(nextParent[methodName], object, ...)}
+    local success = table.remove(results, 1)
+
+    -- restore previous parent class
+    object.___superScope[methodName] = currentParent
+
+    -- handle call results
+    if not success then
+        error(results[1])
+    end
+
+    return unpack(results)
 end
 
 --- See if an object is an instance of the given class
@@ -64,7 +92,7 @@ local function instanceof(object, classToCompare)
             return true
         end
 
-        class = class._parent
+        class = class.__parent
     end
 
     return false
@@ -95,7 +123,7 @@ local function class(parent)
             class[i] = v
         end
 
-        class._parent = parent
+        class.__parent = parent
     end
 
     -- the class will be the metatable for all its instances
