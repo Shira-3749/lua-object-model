@@ -21,13 +21,6 @@ Inspired by [http://lua-users.org/wiki/SimpleLuaClasses](http://lua-users.org/wi
 - Lua 5.1 or newer
 
 
-## Installation
-
-Using LuaRocks:
-
-    luarocks install object-model
-
-
 ## Module method overview
 
 - `class([parentClass]): table`
